@@ -1,14 +1,16 @@
-using Nancy;
-using Nancy.ModelBinding;
-
-namespace ShoppingCart.Modules
+namespace ShoppingCart.ShoppingCart
 {
+    using EventFeed;
+    using Nancy;
+    using Nancy.ModelBinding;
+
     public class ShoppingCartModule : NancyModule
     {
-        public ShoppingCartModule(IShoppingCartStore shoppingCartStore,
-        IProductCatalogClient productCatalog,
-        IEventStore eventStore)
-        : base("/shoppingcart")
+        public ShoppingCartModule(
+          IShoppingCartStore shoppingCartStore,
+          IProductCatalogueClient productCatalogue,
+          IEventStore eventStore)
+          : base("/shoppingcart")
         {
             Get("/{userid:int}", parameters =>
             {
@@ -18,15 +20,12 @@ namespace ShoppingCart.Modules
 
             Post("/{userid:int}/items", async (parameters, _) =>
             {
-                var productCatalogIds = this.Bind<int[]>();
-                var userId = (int)parameters.userId;
+                var productCatalogueIds = this.Bind<int[]>();
+                var userId = (int)parameters.userid;
 
                 var shoppingCart = shoppingCartStore.Get(userId);
-                var shoppingCartItems = await
-                productCatalog.GetShoppingCartItems(productCatalogIds)
-                .ConfigureAwait(false);
+                var shoppingCartItems = await productCatalogue.GetShoppingCartItems(productCatalogueIds).ConfigureAwait(false);
                 shoppingCart.AddItems(shoppingCartItems, eventStore);
-
                 shoppingCartStore.Save(shoppingCart);
 
                 return shoppingCart;
@@ -34,11 +33,11 @@ namespace ShoppingCart.Modules
 
             Delete("/{userid:int}/items", parameters =>
             {
-                var productCatalogIds = this.Bind<int[]>();
-                var userId = (int)parameters.userId;
+                var productCatalogueIds = this.Bind<int[]>();
+                var userId = (int)parameters.userid;
 
                 var shoppingCart = shoppingCartStore.Get(userId);
-                shoppingCart.RemoveItems(productCatalogIds, eventStore);
+                shoppingCart.RemoveItems(productCatalogueIds, eventStore);
                 shoppingCartStore.Save(shoppingCart);
 
                 return shoppingCart;
